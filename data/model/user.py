@@ -507,7 +507,7 @@ def get_matching_robots(name_prefix, username, limit=10):
     user_search = prefix_search(User.username, username + "+" + name_prefix)
     prefix_checks = prefix_checks | user_search
 
-    return User.select().where(prefix_checks).limit(limit)
+    return User.select(can_use_read_replica=True).where(prefix_checks).limit(limit)
 
 
 def verify_robot(robot_username, password, instance_keys):
@@ -597,7 +597,7 @@ def generate_temp_robot_jwt_token(instance_keys):
 
 def delete_robot(robot_username):
     try:
-        robot = User.get(username=robot_username, robot=True)
+        robot = User.get(username=robot_username, robot=True, can_use_read_replica=True)
         robot.delete_instance(recursive=True, delete_nullable=True)
 
     except User.DoesNotExist:
@@ -922,7 +922,7 @@ def get_namespace_user(username):
         return None
 
     try:
-        return get_username(username)
+        return User.get(User.username == username)
     except User.DoesNotExist:
         return None
 
